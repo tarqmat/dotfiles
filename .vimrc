@@ -4,7 +4,7 @@ if has('vim_starting')
   set runtimepath+=~/.vim/bundle/neobundle.vim/
 endif
 
-" Neobundl
+" Neobundle
 call neobundle#begin(expand('~/.vim/bundle/'))
 NeoBundleFetch 'Shougo/neobundle.vim'
 NeoBundle 'Shougo/neocomplete.vim'
@@ -25,6 +25,12 @@ NeoBundle 'bling/vim-airline'
 NeoBundle 'kana/vim-operator-user'
 NeoBundle 'kana/vim-smartchr'
 NeoBundle 'hewes/unite-gtags'
+NeoBundle 'thinca/vim-quickrun'
+
+NeoBundle 'google/vim-ft-go'
+NeoBundle 'vim-jp/vim-go-extra'
+NeoBundleLocal $GOPATH/src/github.com/nsf/gocode/vim
+NeoBundleLocal $HOME/dotfiles/.vim/private
 call neobundle#end()
 
 filetype plugin indent on
@@ -62,15 +68,9 @@ set virtualedit+=block
 set smarttab
 set ambiwidth=double
 
-" these configurations should be changed depending on coding rules
-set tabstop=4
-set shiftwidth=4
+set tabstop=2
+set shiftwidth=2
 set expandtab
-set tabstop=4
-set shiftwidth=4
-set shiftround
-" switch-case indent 0
-set cinoptions=:0
 
 " syntax hilighting for doxygen docs in c/c++/c# code
 let g:load_doxygen_syntax = 1
@@ -121,6 +121,23 @@ autocmd FileType c,cpp inoremap <buffer> <expr> > search('^#include <.*\%#', 'bc
 autocmd FileType c,cpp inoremap <buffer> <expr> < search('^#include\%#', 'bcn') ? ' <' : smartchr#loop('<', ' < ', ' << ', ' <= ')
 autocmd FileType c,cpp inoremap <buffer> <expr> " search('^#include\%#', 'bcn') ? ' "' : '"'
 autocmd FileType c,cpp inoremap <buffer> <expr> ( search('\<\if\%#', 'bcn') ? ' (' : '('
+
+" for quickrun
+if !exists("g:quickrun_config")
+  let g:quickrun_config = {}
+endif
+
+"\ 'runner' : 'vimproc',
+
+let g:quickrun_config['_'] = {
+\ 'runner/vimproc/updatetime' : 60,
+\ 'outputter/buffer/split' : 'rightbelow 4sp',
+\ 'outputter/buffer/close_on_empty' : 1,
+\ 'outputter/error/error'   : 'quickfix',
+\ 'outputter/error/success' : 'buffer',
+\ 'outputter'               : 'error',
+\}
+nnoremap <expt><silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
 " for neocomplete
 let g:neocomplete#enable_at_startup = 1
@@ -180,8 +197,8 @@ nmap <F5> :<C-u>Unite buffer<CR>
 " nmap <F8> :tabclose<CR>
 
 " neosnippet
-imap <silent><C-l> <Plug>(neosnippet_expand_or_jump)
-smap <silent><C-l> <Plug>(neosnippet_expand_or_jump)
+imap <C-k> <Plug>(neosnippet_expand_or_jump)
+smap <C-k> <Plug>(neosnippet_expand_or_jump)
 
 " unite
 " nnoremap <silent> ,us :<C-u>UniteVersions status:!<CR>
@@ -190,8 +207,8 @@ nnoremap <silent> ,uf :<C-u>Unite file<CR>
 nnoremap <silent> ,ub :<C-u>Unite buffer<CR>
 nnoremap <silent> ,um :<C-u>Unite file_mru<CR>
 nnoremap <silent> ,ur :<C-u>Unite -buffer-name=register register<CR>
-au FileType unite nnoremap <silent><buffer> <ESC><ESC> :q<CR>
-au FileType unite inoremap <silent><buffer> <ESC><ESC> <ESC>:q<CR>
+autocmd FileType unite nnoremap <silent><buffer> <ESC><ESC> :q<CR>
+autocmd FileType unite inoremap <silent><buffer> <ESC><ESC> <ESC>:q<CR>
 
 " nerdcommenter
 "nmap ,c<Space> <Leader>c<Space>
@@ -200,6 +217,23 @@ au FileType unite inoremap <silent><buffer> <ESC><ESC> <ESC>:q<CR>
 " map ,z <Plug>(operator-camelize)
 " map ,Z <Plug>(operator-decamelize)
 
-" quickrun
-" nnoremap <expt><silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
+
+autocmd FileType go autocmd BufWritePre <buffer> Fmt
+
+" via http://qiita.com/Linda_pp/items/ec458977a6552050855b
+function! s:open_kobito(...)
+  if a:0 == 0
+    call system('open -a Kobito '.expand('%:p'))
+  else
+    call system('open -a Kobito '.join(a:000, ' '))
+  endif
+endfunction
+
+" 引数のファイル(複数指定可)を Kobitoで開く
+" " （引数無しのときはカレントバッファを開く
+command! -nargs=* Kobito call s:open_kobito(<f-args>)
+" Kobito を閉じる
+command! -nargs=0 KobitoClose call system("osascript -e 'tell application \"Kobito\" to quit'")
+" Kobito にフォーカスを移す
+command! -nargs=0 KobitoFocus call system("osascript -e 'tell application \"Kobito\" to activate'")
 

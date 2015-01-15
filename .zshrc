@@ -7,4 +7,8 @@ source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
-export PATH=$HOME/bin:/usr/local/bin:$PATH
+export GOPATH=$HOME/devel/go
+export PATH=$HOME/bin:/usr/local/bin:$PATH:$GOPATH/bin
+
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
