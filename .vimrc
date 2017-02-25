@@ -1,54 +1,33 @@
-if has('vim_starting')
+" based on http://qiita.com/kawaz/items/ee725f6214f91337b42b
+if !&compatible
   set nocompatible
-  set runtimepath+=~/.vim/bundle/neobundle.vim/
 endif
 
-" Neobundle
-call neobundle#begin(expand('~/.vim/bundle/'))
-NeoBundleFetch 'Shougo/neobundle.vim'
-NeoBundle 'Shougo/neocomplete.vim'
-NeoBundle 'Shougo/neosnippet.vim'
-NeoBundle 'Shougo/neosnippet-snippets'
-NeoBundle 'Shougo/unite.vim'
-NeoBundle 'Shougo/neomru.vim'
-NeoBundle 'Shougo/vimproc.vim', '', 'default'
-call neobundle#config('vimproc.vim', {
-\ 'build' : {
-\     'windows' : 'make -f make_mingw32.mak',
-\     'cygwin'  : 'make -f make_cygwin.mak',
-\     'mac'     : 'make -f make_mac.mak',
-\     'unix'    : 'make -f make_unix.mak',
-\    },
-\ })
-NeoBundle 'vim-airline/vim-airline'
-NeoBundle 'vim-airline/vim-airline-themes'
-NeoBundle 'kana/vim-operator-user'
-NeoBundle 'kana/vim-smartchr'
-NeoBundle 'hewes/unite-gtags'
-NeoBundle 'thinca/vim-quickrun'
-NeoBundle 'tpope/vim-surround'
-NeoBundle 'tyru/caw.vim'
+let s:cache_home = empty($XDG_CACHE_HOME) ? expand('~/.cache') : $XDG_CACHE_HOME
+let s:dein_dir = s:cache_home . '/dein'
+let s:dein_repo_dir = s:dein_dir . '/repos/github.com/Shougo/dein.vim'
+if !isdirectory(s:dein_repo_dir)
+  execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
+endif
+execute 'set runtimepath^=' . s:dein_repo_dir
 
-NeoBundle 'google/vim-ft-go'
-NeoBundle 'vim-jp/vim-go-extra'
-NeoBundle 'rust-lang/rust.vim'
-NeoBundle 'racer-rust/vim-racer', {
-\ 'build' : {
-\   'mac' : 'cargo build --release',
-\   'unix' : 'cargo build --release',
-\  }
-\}
-NeoBundle 'cespare/vim-toml'
-NeoBundle 'vim-syntastic/syntastic'
-NeoBundle 'morhetz/gruvbox'
-NeoBundle 'tpope/vim-fugitive'
+if dein#load_state(s:dein_dir)
+  call dein#begin(s:dein_dir)
+  let s:toml_file = $XDG_CONFIG_HOME . '/nvim/dein.toml'
+  let s:toml_lazy_file = $XDG_CONFIG_HOME . '/nvim/dein_lazy.toml'
+  call dein#load_toml(s:toml_file,      {'lazy': 0})
+  call dein#load_toml(s:toml_lazy_file, {'lazy': 1})
+  call dein#end()
+  call dein#save_state()
+endif
 
-NeoBundleLocal $GOPATH/src/github.com/nsf/gocode/vim
-NeoBundleLocal $HOME/dotfiles/.vim/private
-call neobundle#end()
+if dein#check_install(['vimproc'])
+  call dein#install(['vimproc'])
+endif
 
-filetype plugin indent on
-NeoBundleCheck
+if dein#check_install()
+  call dein#install()
+endif
 
 " Vim options
 syntax on
@@ -98,7 +77,6 @@ else
     set noundofile
 endif
 
-
 " open quickfix after make,grep,..
 aug myquickfix
     au! myquickfix
@@ -120,21 +98,21 @@ aug myautolastcursor
 aug END
 
 " for smartchr
-autocmd FileType c,cpp inoremap <buffer> <expr> = search('\(&\<bar><bar>\<bar>+\<bar>-\<bar>/\<bar>>\<bar><\) \%#', 'bcn') ? '<bs>= ' : search('\(*\<bar>!\)\%#', 'bcn') ? '= ' : smartchr#loop(' = ', ' == ', '=')
-"autocmd FileType c,cpp inoremap <buffer> <expr> = smartchr#loop(' = ', '=', ' == ')
-autocmd FileType c,cpp inoremap <buffer> <expr> + smartchr#loop(' + ', '++', '+')
-autocmd FileType c,cpp inoremap <buffer> <expr> - smartchr#loop(' - ', '--', '-')
-autocmd FileType c,cpp inoremap <buffer> <expr> / smartchr#loop(' / ', '// ', '/')
-autocmd FileType c,cpp inoremap <buffer> <expr> % smartchr#loop(' % ', '%')
-autocmd FileType c,cpp inoremap <buffer> <expr> & smartchr#loop('&', ' & ', ' && ')
-autocmd FileType c,cpp inoremap <buffer> <expr> ? smartchr#loop('? ', '?')
-autocmd FileType c,cpp inoremap <buffer> <expr> : smartchr#loop(': ', '::', ':')
-autocmd FileType c,cpp inoremap <buffer> <expr> , smartchr#loop(', ', ',')
-autocmd FileType c,cpp inoremap <buffer> <expr> . smartchr#loop('.', '->', '...')
-autocmd FileType c,cpp inoremap <buffer> <expr> > search('^#include <.*\%#', 'bcn') ? '>' : smartchr#loop('>', ' > ', ' >> ', ' >= ')
-autocmd FileType c,cpp inoremap <buffer> <expr> < search('^#include\%#', 'bcn') ? ' <' : smartchr#loop('<', ' < ', ' << ', ' <= ')
-autocmd FileType c,cpp inoremap <buffer> <expr> " search('^#include\%#', 'bcn') ? ' "' : '"'
-autocmd FileType c,cpp inoremap <buffer> <expr> ( search('\<\if\%#', 'bcn') ? ' (' : '('
+" autocmd FileType c,cpp inoremap <buffer> <expr> = search('\(&\<bar><bar>\<bar>+\<bar>-\<bar>/\<bar>>\<bar><\) \%#', 'bcn') ? '<bs>= ' : search('\(*\<bar>!\)\%#', 'bcn') ? '= ' : smartchr#loop(' = ', ' == ', '=')
+" autocmd FileType c,cpp inoremap <buffer> <expr> = smartchr#loop(' = ', '=', ' == ')
+" autocmd FileType c,cpp inoremap <buffer> <expr> + smartchr#loop(' + ', '++', '+')
+" autocmd FileType c,cpp inoremap <buffer> <expr> - smartchr#loop(' - ', '--', '-')
+" autocmd FileType c,cpp inoremap <buffer> <expr> / smartchr#loop(' / ', '// ', '/')
+" autocmd FileType c,cpp inoremap <buffer> <expr> % smartchr#loop(' % ', '%')
+" autocmd FileType c,cpp inoremap <buffer> <expr> & smartchr#loop('&', ' & ', ' && ')
+" autocmd FileType c,cpp inoremap <buffer> <expr> ? smartchr#loop('? ', '?')
+" autocmd FileType c,cpp inoremap <buffer> <expr> : smartchr#loop(': ', '::', ':')
+" autocmd FileType c,cpp inoremap <buffer> <expr> , smartchr#loop(', ', ',')
+" autocmd FileType c,cpp inoremap <buffer> <expr> . smartchr#loop('.', '->', '...')
+" autocmd FileType c,cpp inoremap <buffer> <expr> > search('^#include <.*\%#', 'bcn') ? '>' : smartchr#loop('>', ' > ', ' >> ', ' >= ')
+" autocmd FileType c,cpp inoremap <buffer> <expr> < search('^#include\%#', 'bcn') ? ' <' : smartchr#loop('<', ' < ', ' << ', ' <= ')
+" autocmd FileType c,cpp inoremap <buffer> <expr> " search('^#include\%#', 'bcn') ? ' "' : '"'
+" autocmd FileType c,cpp inoremap <buffer> <expr> ( search('\<\if\%#', 'bcn') ? ' (' : '('
 
 " for quickrun
 if !exists("g:quickrun_config")
@@ -161,10 +139,10 @@ nnoremap <expt><silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() 
 \}
 
 " for neocomplete
-let g:neocomplete#enable_at_startup = 1
-let g:neacomplete#enable_smart_case = 1
-let g:neocomplete#sources#syntax#min_keyword_length = 3
-let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
+" let g:neocomplete#enable_at_startup = 1
+" let g:neacomplete#enable_smart_case = 1
+" let g:neocomplete#sources#syntax#min_keyword_length = 3
+" let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
 
 " for racer
 let g:racer_cmd = expand('$HOME/.cargo/bin/racer')
@@ -202,12 +180,11 @@ cnoremap <C-a> <Home>
 " \\ to savk
 noremap <Leader><Leader> :up<CR>
 
-nmap ,f :<C-u>Unite grep::-iRn:<C-r><C-w><CR><CR>
-
-nmap <C-]> :<C-u>Unite gtags/context<CR>
-nmap <F3> :<C-u>Unite file_mru<CR>
-nmap <F4> :<C-u>Unite file<CR>
-nmap <F5> :<C-u>Unite buffer<CR>
+" nmap ,f :<C-u>Unite grep::-iRn:<C-r><C-w><CR><CR>
+" nmap <C-]> :<C-u>Unite gtags/context<CR>
+" nmap <F3> :<C-u>Unite file_mru<CR>
+" nmap <F4> :<C-u>Unite file<CR>
+" nmap <F5> :<C-u>Unite buffer<CR>
 
 " svn Diff
 " nmap <F6> :VCSVimDiff<CR>
@@ -220,18 +197,18 @@ nmap <F5> :<C-u>Unite buffer<CR>
 " nmap <F8> :tabclose<CR>
 
 " neosnippet
-imap <C-k> <Plug>(neosnippet_expand_or_jump)
-smap <C-k> <Plug>(neosnippet_expand_or_jump)
+" imap <C-k> <Plug>(neosnippet_expand_or_jump)
+" smap <C-k> <Plug>(neosnippet_expand_or_jump)
 
 " unite
 " nnoremap <silent> ,us :<C-u>UniteVersions status:!<CR>
 " nnoremap <silent> ,ul :<C-u>UniteVersions log:%<CR>
-nnoremap <silent> ,uf :<C-u>Unite file<CR>
-nnoremap <silent> ,ub :<C-u>Unite buffer<CR>
-nnoremap <silent> ,um :<C-u>Unite file_mru<CR>
-nnoremap <silent> ,ur :<C-u>Unite -buffer-name=register register<CR>
-autocmd FileType unite nnoremap <silent><buffer> <ESC><ESC> :q<CR>
-autocmd FileType unite inoremap <silent><buffer> <ESC><ESC> <ESC>:q<CR>
+" nnoremap <silent> ,uf :<C-u>Unite file<CR>
+" nnoremap <silent> ,ub :<C-u>Unite buffer<CR>
+" nnoremap <silent> ,um :<C-u>Unite file_mru<CR>
+" nnoremap <silent> ,ur :<C-u>Unite -buffer-name=register register<CR>
+" autocmd FileType unite nnoremap <silent><buffer> <ESC><ESC> :q<CR>
+" autocmd FileType unite inoremap <silent><buffer> <ESC><ESC> <ESC>:q<CR>
 
 " nerdcommenter
 "nmap ,c<Space> <Leader>c<Space>
