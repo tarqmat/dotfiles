@@ -1,4 +1,3 @@
-
 if has('vim_starting')
   set nocompatible
   set runtimepath+=~/.vim/bundle/neobundle.vim/
@@ -21,14 +20,29 @@ call neobundle#config('vimproc.vim', {
 \     'unix'    : 'make -f make_unix.mak',
 \    },
 \ })
-NeoBundle 'bling/vim-airline'
+NeoBundle 'vim-airline/vim-airline'
+NeoBundle 'vim-airline/vim-airline-themes'
 NeoBundle 'kana/vim-operator-user'
 NeoBundle 'kana/vim-smartchr'
 NeoBundle 'hewes/unite-gtags'
 NeoBundle 'thinca/vim-quickrun'
+NeoBundle 'tpope/vim-surround'
+NeoBundle 'tyru/caw.vim'
 
 NeoBundle 'google/vim-ft-go'
 NeoBundle 'vim-jp/vim-go-extra'
+NeoBundle 'rust-lang/rust.vim'
+NeoBundle 'racer-rust/vim-racer', {
+\ 'build' : {
+\   'mac' : 'cargo build --release',
+\   'unix' : 'cargo build --release',
+\  }
+\}
+NeoBundle 'cespare/vim-toml'
+NeoBundle 'vim-syntastic/syntastic'
+NeoBundle 'morhetz/gruvbox'
+NeoBundle 'tpope/vim-fugitive'
+
 NeoBundleLocal $GOPATH/src/github.com/nsf/gocode/vim
 NeoBundleLocal $HOME/dotfiles/.vim/private
 call neobundle#end()
@@ -139,12 +153,21 @@ let g:quickrun_config['_'] = {
 \}
 nnoremap <expt><silent> <C-c> quickrun#is_running() ? quickrun#sweep_sessions() : "\<C-c>"
 
+" let g:quickrun_config['syntax/rust'] = {
+\ 'command' : 'rustc',
+\ 'cmdopt' : '-Zparse-only',
+\ 'exec' : '%c %o %s:p',
+\ 'outputter' : 'quickfix',
+\}
+
 " for neocomplete
 let g:neocomplete#enable_at_startup = 1
 let g:neacomplete#enable_smart_case = 1
 let g:neocomplete#sources#syntax#min_keyword_length = 3
 let g:neocomplete#lock_buffer_name_pattern = '\*ku\*'
 
+" for racer
+let g:racer_cmd = expand('$HOME/.cargo/bin/racer')
 
 " Keybinds
 
@@ -217,23 +240,20 @@ autocmd FileType unite inoremap <silent><buffer> <ESC><ESC> <ESC>:q<CR>
 " map ,z <Plug>(operator-camelize)
 " map ,Z <Plug>(operator-decamelize)
 
-
 autocmd FileType go autocmd BufWritePre <buffer> Fmt
 
-" via http://qiita.com/Linda_pp/items/ec458977a6552050855b
-function! s:open_kobito(...)
-  if a:0 == 0
-    call system('open -a Kobito '.expand('%:p'))
-  else
-    call system('open -a Kobito '.join(a:000, ' '))
-  endif
-endfunction
+" airline
+let g:airline#extensions#tabline#enabled = 1
+" let g:airline_powerline_fonts = 1
 
-" 引数のファイル(複数指定可)を Kobitoで開く
-" " （引数無しのときはカレントバッファを開く
-command! -nargs=* Kobito call s:open_kobito(<f-args>)
-" Kobito を閉じる
-command! -nargs=0 KobitoClose call system("osascript -e 'tell application \"Kobito\" to quit'")
-" Kobito にフォーカスを移す
-command! -nargs=0 KobitoFocus call system("osascript -e 'tell application \"Kobito\" to activate'")
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticsStatuslineFlag()}
+set statusline+=%*
 
+let g:syntastic_rust_checkers = ['cargo']
+let g:syntastic_always_populage_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_chech_on_open = 1
+let g:syntastic_chech_on_wq = 0
+
+colo gruvbox
